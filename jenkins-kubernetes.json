@@ -1,4 +1,7 @@
-{
+
+
+
+updated {
   "apiVersion" : "v1",
   "kind" : "Template",
   "labels" : { },
@@ -6,7 +9,9 @@
     "annotations" : {
       "description" : "Jenkins CI is a leading open-source continuous integration server. Built with Java, it provides 985 plugins to support building and testing virtually any project.\n\n[http://jenkins-ci.org/](http://jenkins-ci.org/)",
       "fabric8.jenkins/summary" : "[Jenkins](http://jenkins-ci.org/) extendable open source continuous integration server",
-      "fabric8.jenkins/iconUrl" : "https://cdn.rawgit.com/fabric8io/quickstarts/master/apps/jenkins/src/main/fabric8/icon.svg"
+      "fabric8.jenkins/iconUrl" : "https://cdn.rawgit.com/fabric8io/quickstarts/master/apps/jenkins/src/main/fabric8/icon.svg",
+      "secret.fabric8.io/ssh-key" : "fabric8-github-ssh",
+      "secret.fabric8.io/gpg-key" : "fabric8-release-gpg"
      },
     "labels" : { },
     "name" : "jenkins"
@@ -107,6 +112,14 @@
               "name" : "docker-socket",
               "readOnly" : false
             }, {
+              "mountPath" : "/root/.gnupg",
+              "name" : "gpg-key",
+              "readOnly" : false
+            }, {
+              "mountPath" : "/var/jenkins/.ssh-github",
+              "name" : "github-ssh",
+              "readOnly" : false
+            }, {
               "mountPath" : "/home/jenkins/ssh-keys",
               "name" : "jenkis-master-key",
               "readOnly" : false
@@ -130,6 +143,17 @@
               "medium" : ""
             },
             "name" : "jenkins-workspace"
+          },
+          {
+            "secret": {
+              "secretName": "fabric8-github-ssh"
+            },
+            "name" : "github-ssh"
+          }, {
+            "secret": {
+              "secretName": "fabric8-release-gpg"
+            },
+            "name" : "gpg-key"
           } ]
         }
       }
