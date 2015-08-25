@@ -1,0 +1,195 @@
+{
+  "apiVersion" : "v1",
+  "kind" : "Template",
+  "labels" : { },
+  "metadata" : {
+    "annotations" : {
+      "description" : "Jenkins CI is a leading open-source continuous integration server. Built with Java, it provides 985 plugins to support building and testing virtually any project.\n\n[http://jenkins-ci.org/](http://jenkins-ci.org/)",
+      "fabric8.jenkins/summary" : "[Jenkins](http://jenkins-ci.org/) extendable open source continuous integration server",
+      "fabric8.jenkins/iconUrl" : "https://cdn.rawgit.com/fabric8io/quickstarts/master/apps/jenkins/src/main/fabric8/icon.svg"
+     },
+    "labels" : { },
+    "name" : "jenkins"
+  },
+  "objects" : [ {
+    "apiVersion" : "v1",
+    "kind" : "ReplicationController",
+    "metadata" : {
+      "annotations" : { },
+      "labels" : {
+        "provider" : "fabric8",
+        "component" : "jenkins"
+      },
+      "name" : "jenkins"
+    },
+    "spec" : {
+      "replicas" : 1,
+      "selector" : {
+        "provider" : "fabric8",
+        "component" : "jenkins"
+      },
+      "template" : {
+        "metadata" : {
+          "annotations" : { },
+          "labels" : {
+            "provider" : "fabric8",
+            "component" : "jenkins"
+          }
+        },
+        "spec" : {
+          "containers" : [ {
+            "args" : [ ],
+            "command" : [ ],
+            "env" : [ {
+              "name" : "DOMAIN",
+              "value" : "${DOMAIN}"
+            }, {
+              "name" : "FABRIC8_DEFAULT_ENVIRONMENTS",
+              "value" : "${FABRIC8_DEFAULT_ENVIRONMENTS}"
+            }, {
+              "name" : "JENKINS_WORKFLOW_GIT_REPOSITORY",
+              "value" : "${JENKINS_WORKFLOW_GIT_REPOSITORY}"
+            }, {
+              "name" : "JENKINS_GOGS_PASSWORD",
+              "value" : "${JENKINS_GOGS_PASSWORD}"
+            }, {
+              "name" : "JENKINS_GOGS_USER",
+              "value" : "${JENKINS_GOGS_USER}"
+            }, {
+              "name" : "SEED_GIT_URL",
+              "value" : "${SEED_GIT_URL}"
+            }, {
+              "name" : "JENKINS_GOGS_EMAIL",
+              "value" : "${JENKINS_GOGS_EMAIL}"
+            }, {
+              "name" : "FABRIC8_CONSOLE",
+              "value" : "http://fabric8.${DOMAIN}"
+            }, {
+              "name" : "JENKINS_SLAVE_IMAGE",
+              "value" : "${JENKINS_SLAVE_IMAGE}"
+            }, {
+              "name" : "CGO_ENABLED",
+              "value" : "0"
+            }, {
+              "name" : "KUBERNETES_NAMESPACE",
+              "valueFrom" : {
+                "fieldRef" : {
+                  "fieldPath" : "metadata.namespace"
+                }
+              }
+            }, {
+              "name" : "KUBERNETES_POD",
+              "valueFrom" : {
+                "fieldRef" : {
+                  "fieldPath" : "metadata.name"
+                }
+              }
+            } ],
+            "image" : "fabric8/jenkernetes",
+            "imagePullPolicy" : "IfNotPresent",
+            "name" : "jenkins",
+            "ports" : [ {
+              "containerPort" : 50000,
+              "name" : "slave"
+            }, {
+              "containerPort" : 8080,
+              "name" : "http"
+            } ],
+            "securityContext" : {
+              "privileged" : true
+            },
+            "volumeMounts" : [ {
+              "mountPath" : "/var/jenkins_home",
+              "name" : "jenkins-workspace",
+              "readOnly" : false
+            }, {
+              "mountPath" : "/var/run/docker.sock",
+              "name" : "docker-socket",
+              "readOnly" : false
+            }, {
+              "mountPath" : "/home/jenkins/ssh-keys",
+              "name" : "jenkis-master-key",
+              "readOnly" : false
+            } ]
+          } ],
+          "imagePullSecrets" : [ ],
+          "nodeSelector" : { },
+          "serviceAccountName" : "fabric8",
+          "volumes" : [ {
+            "hostPath" : {
+              "path" : "/home/jenkins/ssh-keys"
+            },
+            "name" : "jenkis-master-key"
+          }, {
+            "hostPath" : {
+              "path" : "/var/run/docker.sock"
+            },
+            "name" : "docker-socket"
+          }, {
+            "emptyDir" : {
+              "medium" : ""
+            },
+            "name" : "jenkins-workspace"
+          } ]
+        }
+      }
+    }
+  }, {
+    "apiVersion" : "v1",
+    "kind" : "Service",
+    "metadata" : {
+      "annotations" : { },
+      "labels" : {
+        "provider" : "fabric8",
+        "component" : "jenkins"
+      },
+      "name" : "jenkins"
+    },
+    "spec" : {
+      "deprecatedPublicIPs" : [ ],
+      "ports" : [ {
+        "port" : 80,
+        "protocol" : "TCP",
+        "targetPort" : 8080
+      } ],
+      "selector" : {
+        "provider" : "fabric8",
+        "component" : "jenkins"
+      },
+      "type" : "LoadBalancer"
+    }
+  } ],
+  "parameters" : [ {
+    "description" : "The docker image used for jenkins slave when using the Docker Cloud",
+    "name" : "JENKINS_SLAVE_IMAGE",
+    "value" : "fabric8/jenkins-slave"
+  }, {
+    "description" : "The email address of the Jenkins user on Gogs",
+    "name" : "JENKINS_GOGS_EMAIL",
+    "value" : "gogsadmin@fabric8.local"
+  }, {
+    "description" : "The user name for Jenkins to login to Gogs",
+    "name" : "JENKINS_GOGS_USER",
+    "value" : "gogsadmin"
+  }, {
+    "description" : "The list of default environment names to actual kubernetes namespaces",
+    "name" : "FABRIC8_DEFAULT_ENVIRONMENTS",
+    "value" : "Staging=${buildName}-staging,Production=${buildName}-prod"
+  }, {
+    "description" : "The password for Jenkins to login to Gogs",
+    "name" : "JENKINS_GOGS_PASSWORD",
+    "value" : "RedHat$1"
+  }, {
+    "description" : "The git clone URL for the jenkins workflow repository which can be reused across projects",
+    "name" : "JENKINS_WORKFLOW_GIT_REPOSITORY",
+    "value" : "https://github.com/fabric8io/jenkins-workflow-library.git"
+  }, {
+    "description" : "The domain name applications are installed on",
+    "name" : "DOMAIN",
+    "value" : "vagrant.f8"
+  }, {
+    "description" : "The git URL of the seed build used to generate builds",
+    "name" : "SEED_GIT_URL",
+    "value" : "https://github.com/fabric8io/default-jenkins-dsl.git"
+  } ]
+}
